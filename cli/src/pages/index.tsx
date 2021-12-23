@@ -58,19 +58,31 @@ let account_pda: PublicKey;
  * The state of the account managed by the solana program
  */
  class ProgramAccount {
-  accountName = 'account name';
-  constructor(fields: {accountName: string} | undefined = undefined) {
-    if (fields) {
-      this.accountName = fields.accountName;
-    }
+  id: number;
+  accountName: string;
+  constructor(fields: {
+    id: number,
+    accountName: string
+  }) {
+    this.id = fields.id;
+    this.accountName = fields.accountName;
   }
 }
 
 /**
- * Borsh schema definition for greeting accounts
+ * Borsh schema definition for accounts
  */
  const PROGRAM_ACCOUNT_SCHEMA = new Map([
-  [ProgramAccount, {kind: 'struct', fields: [['accountName', 'string']]}],
+  [
+    ProgramAccount, 
+    {
+      kind: 'struct', 
+      fields: [
+        ['id', 'u8'],
+        ['accountName', 'string']
+      ]
+    }
+  ],
 ]);
 
 const getProvider = (): PhantomProvider | undefined => {
@@ -137,7 +149,7 @@ const Home: NextPage = () => {
         new PublicKey(PROGRAM_ID),
       );
 
-      const programAccount = new ProgramAccount({accountName: name});
+      const programAccount = new ProgramAccount({id: 0 ,accountName: name});
 
       const instruction = new TransactionInstruction({
         keys: [{pubkey: accountPublicKey, isSigner: false, isWritable: true}],
