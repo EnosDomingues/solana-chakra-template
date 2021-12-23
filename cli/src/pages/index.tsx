@@ -1,6 +1,7 @@
 import { Button, Flex, Input } from '@chakra-ui/react'
 import type { NextPage } from 'next'
 import { useEffect, useState } from 'react'
+import * as borsh from 'borsh';
 import {
   Connection,
   PublicKey,
@@ -51,7 +52,26 @@ interface PhantomProvider {
 /**
  * The public key of the account we are creating
  */
- let account_pda: PublicKey;
+let account_pda: PublicKey;
+
+/**
+ * The state of the account managed by the solana program
+ */
+ class ProgramAccount {
+  accountName = 'account name';
+  constructor(fields: {accountName: string} | undefined = undefined) {
+    if (fields) {
+      this.accountName = fields.accountName;
+    }
+  }
+}
+
+/**
+ * Borsh schema definition for greeting accounts
+ */
+ const PROGRAM_ACCOUNT_SCHEMA = new Map([
+  [ProgramAccount, {kind: 'struct', fields: [['accountName', 'string']]}],
+]);
 
 const getProvider = (): PhantomProvider | undefined => {
   if(typeof window !== "undefined") {
@@ -117,10 +137,12 @@ const Home: NextPage = () => {
         new PublicKey(PROGRAM_ID),
       );
 
+      const programAccount = new ProgramAccount();
+
       const instruction = new TransactionInstruction({
         keys: [{pubkey: accountPublicKey, isSigner: false, isWritable: true}],
         programId: new PublicKey(PROGRAM_ID),
-        data: Buffer.alloc(0),
+        data: Buffer.from(borsh.serialize(PROGRAM_ACCOUNT_SCHEMA, programAccount)),
       });
 
       const transaction = await createTransaction([instruction], provider, CONNECTION)

@@ -1,6 +1,19 @@
+use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
-    account_info::AccountInfo, entrypoint, entrypoint::ProgramResult, msg, pubkey::Pubkey,
+    account_info::{next_account_info, AccountInfo},
+    entrypoint,
+    entrypoint::ProgramResult,
+    msg,
+    program_error::ProgramError,
+    pubkey::Pubkey,
 };
+
+/// Define the type of state stored in accounts
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct Account {
+    /// account name
+    pub account_name: String,
+}
 
 entrypoint!(process_instruction);
 fn process_instruction(
@@ -8,12 +21,25 @@ fn process_instruction(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    msg!(
-        "process_instruction: {}: {} accounts, data={:?}",
-        program_id,
-        accounts.len(),
-        instruction_data
-    );
+    msg!("Starting program: {}", program_id);
+
+    // Iterating accounts is safer then indexing
+    let accounts_iter = &mut accounts.iter();
+
+    // Get the account
+    let account = next_account_info(accounts_iter)?;
+
+    // The account must be owned by the program in order to modify its data
+    if account.owner != program_id {
+        msg!("Account does not have the correct program id");
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    // Reading and change the account name
+    let program_account = Account::try_from_slice(instruction_data)?;
+
+    msg!("Account name: {}", program_account.account_name);
+
     Ok(())
 }
 
