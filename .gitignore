@@ -1,0 +1,40 @@
+*/*-dump.txt
+*/*.so
+*/target/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+*/node_modules
+cli/.pnp
+cli/.pnp.js
+
+# testing
+cli/coverage
+
+# next.js
+cli/.next/
+cli/out/
+
+# production
+cli/build
+
+# misc
+cli/.DS_Store
+*.pem
+
+# debug
+cli/npm-debug.log*
+cli/yarn-debug.log*
+cli/yarn-error.log*
+
+# local env files
+cli/.env.local
+cli/.env.development.local
+cli/.env.test.local
+cli/.env.production.local
+
+# vercel
+cli/.vercel
+
+# typescript
+*.tsbuildinfo
