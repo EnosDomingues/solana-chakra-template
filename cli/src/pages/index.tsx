@@ -1,4 +1,5 @@
-import { Button, Flex, Input } from '@chakra-ui/react'
+import { Button, Flex, Input, Text } from '@chakra-ui/react'
+import { deserializeUnchecked } from 'borsh';
 import type { NextPage } from 'next'
 import { useEffect, useState } from 'react'
 import * as borsh from 'borsh';
@@ -7,7 +8,6 @@ import {
   PublicKey,
   Transaction,
   clusterApiUrl,
-  SystemProgram,
   TransactionInstruction,
   SendOptions,
   LAMPORTS_PER_SOL,
@@ -58,7 +58,7 @@ let account_pda: PublicKey;
  * The state of the account managed by the solana program
  */
  class ProgramAccount {
-  id: number;
+  id = 0;
   accountName: string;
   constructor(fields: {
     id: number,
@@ -101,10 +101,11 @@ const NETWORK = clusterApiUrl("devnet");
 const CONNECTION = new Connection(NETWORK);
 const PROGRAM_ID = 'Fsm28mcKQvRGTovKPvgE4eMomosT6iyJ7ChVZcEjXXmT'
 const ACCOUNT_SEED = 'test'
-const ACCOUNT = 'FCyZP6YSKvdXr32XRC5FKwyxnAmYrn5PHNkhsN1EG9e3s'
+const ACCOUNT = 'FCyZP6YSKvdXr32XRC5FKwyxnAmYrn5PHNkhsN1EG9e3'
 
 const Home: NextPage = () => {
   const [name, setName] = useState<string>('')
+  const [accountName, setAccountName] = useState<string>('')
   const provider = getProvider();
   const [, setConnected] = useState<boolean>(false);
 
@@ -203,14 +204,34 @@ const Home: NextPage = () => {
     }
   }, [provider]);
 
+  useEffect(() => {
+
+    new Promise(resolve => setTimeout(resolve, 10)).then(async () => {
+      const accountInfo = await CONNECTION.getAccountInfo(new PublicKey(ACCOUNT), 'processed');
+      
+      if (accountInfo === null) {
+        throw 'Error: cannot find the greeted account';
+      }
+
+      const accountData = deserializeUnchecked(PROGRAM_ACCOUNT_SCHEMA, ProgramAccount, accountInfo.data);
+
+      setAccountName(accountData.accountName);
+    
+    })
+
+  }, [])
+
   return (
     <Flex h="100vh" w="100%" direction="column" align="center" justify="center" >
-      <Flex w="300px" direction="column">
+      <Flex w="300px" direction="column" align="center">
+        <Text mb="10">
+          {accountName ? accountName : '--'}
+        </Text>
         {provider?.publicKey && (
           <>
             <Input placeholder="Name" onChange={(e) => setName(e.target.value)}/>
             <Button colorScheme="twitter" onClick={() => programCall()} mt="4"> Create </Button>
-            <Button colorScheme="twitter" onClick={() => create_account(ACCOUNT_SEED, provider, new PublicKey(PROGRAM_ID) ,CONNECTION)} mt="4"> Create Account </Button>
+            {/* <Button colorScheme="twitter" onClick={() => create_account(ACCOUNT_SEED, provider, new PublicKey(PROGRAM_ID) ,CONNECTION)} mt="4"> Create Account </Button> */}
           </>
         )}
         {provider?.publicKey ? 
