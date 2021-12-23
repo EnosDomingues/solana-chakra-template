@@ -1,4 +1,4 @@
-import { Button, Flex, Input, Text } from '@chakra-ui/react'
+import { Button, Flex, Input, Spinner, Text } from '@chakra-ui/react'
 import { deserializeUnchecked } from 'borsh';
 import type { NextPage } from 'next'
 import { useEffect, useState } from 'react'
@@ -106,6 +106,7 @@ const ACCOUNT = 'FCyZP6YSKvdXr32XRC5FKwyxnAmYrn5PHNkhsN1EG9e3'
 const Home: NextPage = () => {
   const [name, setName] = useState<string>('')
   const [accountName, setAccountName] = useState<string>('')
+  const [isAccountNameLoaded, setIsAccountNameLoaded] = useState<boolean>(false)
   const provider = getProvider();
   const [, setConnected] = useState<boolean>(false);
 
@@ -164,8 +165,10 @@ const Home: NextPage = () => {
         sendTransaction(
           transaction, 
           provider, 
-          CONNECTION)
+          CONNECTION).then(() => {
+        })
       }
+
     }
   }
 
@@ -206,18 +209,24 @@ const Home: NextPage = () => {
 
   useEffect(() => {
 
-    new Promise(resolve => setTimeout(resolve, 10)).then(async () => {
-      const accountInfo = await CONNECTION.getAccountInfo(new PublicKey(ACCOUNT), 'processed');
+    const intervalId = setInterval(() => {
+      new Promise(resolve => setTimeout(resolve, 10)).then(async () => {
+        const accountInfo = await CONNECTION.getAccountInfo(new PublicKey(ACCOUNT), 'processed');
+        
+        if (accountInfo === null) {
+          throw 'Error: cannot find the greeted account';
+        }
+
+        const accountData = deserializeUnchecked(PROGRAM_ACCOUNT_SCHEMA, ProgramAccount, accountInfo.data);
+
+        setAccountName(accountData.accountName);
+
+        setIsAccountNameLoaded(true)
       
-      if (accountInfo === null) {
-        throw 'Error: cannot find the greeted account';
-      }
+      })
+    }, 5000);
 
-      const accountData = deserializeUnchecked(PROGRAM_ACCOUNT_SCHEMA, ProgramAccount, accountInfo.data);
-
-      setAccountName(accountData.accountName);
-    
-    })
+    return () => clearInterval(intervalId);
 
   }, [])
 
@@ -225,21 +234,21 @@ const Home: NextPage = () => {
     <Flex h="100vh" w="100%" direction="column" align="center" justify="center" >
       <Flex w="300px" direction="column" align="center">
         <Text mb="10">
-          {accountName ? accountName : '--'}
+          {isAccountNameLoaded ? accountName : (<Spinner color='red.500' />)}
         </Text>
         {provider?.publicKey && (
           <>
             <Input placeholder="Name" onChange={(e) => setName(e.target.value)}/>
-            <Button colorScheme="twitter" onClick={() => programCall()} mt="4"> Create </Button>
-            {/* <Button colorScheme="twitter" onClick={() => create_account(ACCOUNT_SEED, provider, new PublicKey(PROGRAM_ID) ,CONNECTION)} mt="4"> Create Account </Button> */}
+            <Button w="100%" colorScheme="twitter" onClick={() => programCall()} mt="4"> Create </Button>
+            {/* <Button w="100%" colorScheme="twitter" onClick={() => create_account(ACCOUNT_SEED, provider, new PublicKey(PROGRAM_ID) ,CONNECTION)} mt="4"> Create Account </Button> */}
           </>
         )}
         {provider?.publicKey ? 
           (
-            <Button colorScheme="facebook" mt="4" onClick={() => disconnectToPhantom()}> Disconnect </Button>
+            <Button w="100%" colorScheme="facebook" mt="4" onClick={() => disconnectToPhantom()}> Disconnect </Button>
           ):
           (
-            <Button colorScheme="facebook" mt="4" onClick={() => connectToPhantom()}> Connect </Button>
+            <Button w="100%" colorScheme="facebook" mt="4" onClick={() => connectToPhantom()}> Connect </Button>
           )
         }
       </Flex>

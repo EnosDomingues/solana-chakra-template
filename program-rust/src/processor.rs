@@ -1,4 +1,6 @@
+use crate::state::Account;
 use crate::instruction::AccountInstruction;
+use borsh::BorshSerialize;
 use solana_program::{
   account_info::{next_account_info, AccountInfo},
   entrypoint::ProgramResult,
@@ -44,7 +46,14 @@ impl Processor {
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    msg!("Account name: {}", account_name);
+    let program_account = Account {
+      id: 0,
+      account_name: account_name,
+    };
+
+    program_account.serialize(&mut &mut account.data.borrow_mut()[..])?;
+
+    msg!("Account name: {}", program_account.account_name);
 
   Ok(())
 }
