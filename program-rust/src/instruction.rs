@@ -20,7 +20,7 @@ impl AccountInstruction {
 
     Ok(match program_account.id {
       0 => Self::ChangeName {
-        account_name: program_account.account_name
+        account_name: program_account.account_name,
       },
       _ => return Err(InvalidInstruction.into()),
     })
