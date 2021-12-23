@@ -137,7 +137,7 @@ const Home: NextPage = () => {
         new PublicKey(PROGRAM_ID),
       );
 
-      const programAccount = new ProgramAccount();
+      const programAccount = new ProgramAccount({accountName: name});
 
       const instruction = new TransactionInstruction({
         keys: [{pubkey: accountPublicKey, isSigner: false, isWritable: true}],
@@ -167,7 +167,7 @@ const Home: NextPage = () => {
 
   const disconnectToPhantom = async () => {
     try {
-      const res = await provider?.disconnect();
+      await provider?.disconnect();
     } catch (err) {
       console.warn(err);
     }
