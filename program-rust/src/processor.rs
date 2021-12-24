@@ -1,4 +1,5 @@
 use crate::state::Message;
+use crate::state::MessageAccount;
 use crate::instruction::AccountInstruction;
 use borsh::BorshSerialize;
 use solana_program::{
@@ -46,18 +47,23 @@ impl Processor {
       return Err(ProgramError::IncorrectProgramId);
     }
     
-    let message = Message {
+    let message_obj = Message {
       id: 0,
       sender,
       message,
       sent_date,
     };
 
-    message.serialize(&mut &mut account.data.borrow_mut()[..])?;
+    let mut vec = Vec::new();
+    vec.push(message_obj);
 
-    msg!("Sender: {}", message.sender);
-    msg!("message: {}", message.message);
-    msg!("sent_date: {}", message.sent_date);
+    let messages = MessageAccount {
+      sent: vec,
+    };
+
+    messages.serialize(&mut &mut account.data.borrow_mut()[..])?;
+
+    msg!("Sender: {:?}", messages);
 
   Ok(())
 }

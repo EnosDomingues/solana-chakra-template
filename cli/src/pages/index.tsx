@@ -54,10 +54,7 @@ interface PhantomProvider {
  */
 let account_pda: PublicKey;
 
-/**
- * The state of the account managed by the solana program
- */
- class ProgramAccount {
+class MessageAccount {
   id = 0;
   sender: string;
   message: string;
@@ -76,12 +73,19 @@ let account_pda: PublicKey;
   }
 }
 
-/**
- * Borsh schema definition for accounts
- */
- const PROGRAM_ACCOUNT_SCHEMA = new Map([
+class MessagesAccount {
+  sent: MessageAccount[];
+
+  constructor(fields: {
+    sent: MessageAccount[],
+  }) {
+    this.sent = fields.sent;
+  }
+}
+
+const PROGRAM_ACCOUNT_SCHEMA = new Map([
   [
-    ProgramAccount, 
+    MessageAccount, 
     {
       kind: 'struct', 
       fields: [
@@ -89,6 +93,30 @@ let account_pda: PublicKey;
         ['sender', 'string'],
         ['message', 'string'],
         ['sent_date', 'string'],
+      ]
+    }
+  ],
+]);
+
+const MESSAGES_SCHEMA = new Map<any, any>([
+  [
+    MessageAccount, 
+    {
+      kind: 'struct', 
+      fields: [
+        ['id', 'u8'],
+        ['sender', 'string'],
+        ['message', 'string'],
+        ['sent_date', 'string'],
+      ]
+    }
+  ],
+  [
+    MessagesAccount, 
+    {
+      kind: 'struct', 
+      fields: [
+        ['sent', [MessageAccount]],
       ]
     }
   ],
@@ -114,9 +142,7 @@ const ACCOUNT = 'FCyZP6YSKvdXr32XRC5FKwyxnAmYrn5PHNkhsN1EG9e3'
 
 const Home: NextPage = () => {
   const [message, setMessage] = useState<string>('')
-  const [messageSender, setMessageSender] = useState<string>('')
-  const [messageContent, setMessageContent] = useState<string>('')
-  const [messageSentDate, setMessageSentDate] = useState<string>('')
+  const [messages, setMessages] = useState<MessageAccount[]>([])
   const [isAccountLoaded, setIsAccountLoaded] = useState<boolean>(false)
   const provider = getProvider();
   const [, setConnected] = useState<boolean>(false);
@@ -152,7 +178,7 @@ const Home: NextPage = () => {
         new PublicKey(PROGRAM_ID),
       );
 
-      const programAccount = new ProgramAccount(
+      const programAccount = new MessageAccount(
         {
           id: 0 ,
           sender: provider.publicKey.toString(),
@@ -224,11 +250,11 @@ const Home: NextPage = () => {
           throw 'Error: cannot find the greeted account';
         }
 
-        const accountData = deserializeUnchecked(PROGRAM_ACCOUNT_SCHEMA, ProgramAccount, accountInfo.data);
+        const accountData = deserializeUnchecked(MESSAGES_SCHEMA, MessagesAccount, accountInfo.data);
 
-        setMessageSender(accountData.sender);
-        setMessageContent(accountData.message);
-        setMessageSentDate(accountData.sent_date);
+        console.log(accountData)
+
+        setMessages(accountData.sent);
 
         setIsAccountLoaded(true)
       
@@ -243,13 +269,20 @@ const Home: NextPage = () => {
     <Flex h="100vh" w="100%" direction="column" align="center" justify="center" >
       <Flex w="300px" direction="column" align="center">
 
-          {isAccountLoaded ? (
+          {isAccountLoaded && messages && messages.length > 0 ? (
             <Flex direction="column">
-              <Text>Sender: {messageSender} </Text>
-              <Text>Message: {messageContent} </Text>
-              <Text>Date: {messageSentDate} </Text>
+              {messages.map(message => (
+                <Flex direction="column" key={message.sent_date}>
+                  <Text>Sender: {message.sender}</Text>
+                  <Text>Message: {message.message}</Text>
+                  <Text>Date: {message.sent_date}</Text>
+                </Flex>
+              ))}
             </Flex>
-          ) : (<Spinner color='red.500' />)}
+          ) : 
+          (
+            <Spinner color='red.500' />
+          )}
 
         {provider?.publicKey && (
           <>
