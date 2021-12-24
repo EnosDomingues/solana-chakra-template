@@ -1,4 +1,4 @@
-use crate::state::Account;
+use crate::state::Message;
 use crate::instruction::AccountInstruction;
 use borsh::BorshSerialize;
 use solana_program::{
@@ -19,41 +19,45 @@ impl Processor {
     let instruction = AccountInstruction::unpack(instruction_data)?;
 
     match instruction {
-      AccountInstruction::ChangeName { account_name } => {
-        msg!("Instruction: ChangeName");
-        Self::process_change_account_name(accounts, program_id, account_name)
+      AccountInstruction::SendMessage { sender, message, sent_date } => {
+        Self::process_send_message(accounts, program_id, sender, message, sent_date)
       }
     }
   }
 
-  fn process_change_account_name(
+  fn process_send_message(
     accounts: &[AccountInfo],
     program_id: &Pubkey,
-    account_name: String,
+    sender: String,
+    message: String,
+    sent_date: String,
   ) -> ProgramResult {
 
-    msg!("Starting program: {}", program_id);
-
+    
     // Iterating accounts is safer then indexing
     let accounts_iter = &mut accounts.iter();
-
+    
     // Get the account
     let account = next_account_info(accounts_iter)?;
-
+    
     // The account must be owned by the program in order to modify its data
     if account.owner != program_id {
-        msg!("Account does not have the correct program id");
-        return Err(ProgramError::IncorrectProgramId);
+      msg!("Account does not have the correct program id");
+      return Err(ProgramError::IncorrectProgramId);
     }
-
-    let program_account = Account {
+    
+    let message = Message {
       id: 0,
-      account_name: account_name,
+      sender,
+      message,
+      sent_date,
     };
 
-    program_account.serialize(&mut &mut account.data.borrow_mut()[..])?;
+    message.serialize(&mut &mut account.data.borrow_mut()[..])?;
 
-    msg!("Account name: {}", program_account.account_name);
+    msg!("Sender: {}", message.sender);
+    msg!("message: {}", message.message);
+    msg!("sent_date: {}", message.sent_date);
 
   Ok(())
 }

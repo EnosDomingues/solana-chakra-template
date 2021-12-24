@@ -5,6 +5,8 @@ use solana_program::program_error::ProgramError;
 pub enum AccountError {
   #[error("Invalid Instruction")]
   InvalidInstruction,
+  #[error("Invalid Message Size")]
+  InvalidMessageSize,
 }
 
 impl From<AccountError> for ProgramError {

@@ -1,26 +1,32 @@
 use borsh::BorshDeserialize;
-use crate::state::Account;
+use crate::state::Message;
 use solana_program::sysvar::slot_history::ProgramError;
 use crate::error::AccountError::InvalidInstruction;
 
 #[derive(Debug)]
 pub enum AccountInstruction {
-  /// Change account name
+  /// Send Message
   ///
   /// Accounts expected
   ///
-  /// 1. `[writable]` The account that will have the name updated
-  ChangeName { account_name: String },
+  /// 1. `[writable]` The account that will have the messages
+  SendMessage { 
+    sender: String,
+    message: String,
+    sent_date: String,
+  },
 }
 
 impl AccountInstruction {
 
   pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
-    let program_account = Account::try_from_slice(input).unwrap();
+    let message_account = Message::try_from_slice(input).unwrap();
 
-    Ok(match program_account.id {
-      0 => Self::ChangeName {
-        account_name: program_account.account_name,
+    Ok(match message_account.id {
+      0 => Self::SendMessage {
+        sender: message_account.sender,
+        message: message_account.message,
+        sent_date: message_account.sent_date,
       },
       _ => return Err(InvalidInstruction.into()),
     })

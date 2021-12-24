@@ -1,4 +1,4 @@
-import { Button, Flex, Input, Spinner, Text } from '@chakra-ui/react'
+import { Button, Flex, Spinner, Text, Textarea } from '@chakra-ui/react'
 import { deserializeUnchecked } from 'borsh';
 import type { NextPage } from 'next'
 import { useEffect, useState } from 'react'
@@ -59,13 +59,20 @@ let account_pda: PublicKey;
  */
  class ProgramAccount {
   id = 0;
-  accountName: string;
+  sender: string;
+  message: string;
+  sent_date: string;
+
   constructor(fields: {
     id: number,
-    accountName: string
+    sender: string,
+    message: string,
+    sent_date: string,
   }) {
     this.id = fields.id;
-    this.accountName = fields.accountName;
+    this.sender = fields.sender;
+    this.message = fields.message;
+    this.sent_date = fields.sent_date;
   }
 }
 
@@ -79,7 +86,9 @@ let account_pda: PublicKey;
       kind: 'struct', 
       fields: [
         ['id', 'u8'],
-        ['accountName', 'string']
+        ['sender', 'string'],
+        ['message', 'string'],
+        ['sent_date', 'string'],
       ]
     }
   ],
@@ -104,9 +113,11 @@ const ACCOUNT_SEED = 'test'
 const ACCOUNT = 'FCyZP6YSKvdXr32XRC5FKwyxnAmYrn5PHNkhsN1EG9e3'
 
 const Home: NextPage = () => {
-  const [name, setName] = useState<string>('')
-  const [accountName, setAccountName] = useState<string>('')
-  const [isAccountNameLoaded, setIsAccountNameLoaded] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
+  const [messageSender, setMessageSender] = useState<string>('')
+  const [messageContent, setMessageContent] = useState<string>('')
+  const [messageSentDate, setMessageSentDate] = useState<string>('')
+  const [isAccountLoaded, setIsAccountLoaded] = useState<boolean>(false)
   const provider = getProvider();
   const [, setConnected] = useState<boolean>(false);
 
@@ -124,14 +135,6 @@ const Home: NextPage = () => {
 
       let lamports = await CONNECTION.getBalance(provider.publicKey);
 
-      console.log(
-        'Using account',
-        provider.publicKey.toBase58(),
-        'containing',
-        lamports / LAMPORTS_PER_SOL,
-        'SOL to pay for fees',
-      );
-
       // Check if the program has been deployed
       const programInfo = await CONNECTION.getAccountInfo(new PublicKey(PROGRAM_ID));
 
@@ -143,15 +146,20 @@ const Home: NextPage = () => {
         throw new Error(`Program is not executable`);
       }
 
-      console.log(`Using program ${PROGRAM_ID}`);
-
       const accountPublicKey = await PublicKey.createWithSeed(
         provider.publicKey,
         ACCOUNT_SEED,
         new PublicKey(PROGRAM_ID),
       );
 
-      const programAccount = new ProgramAccount({id: 0 ,accountName: name});
+      const programAccount = new ProgramAccount(
+        {
+          id: 0 ,
+          sender: provider.publicKey.toString(),
+          message,
+          sent_date: new Date((Date.now())).toDateString()
+        }
+      );
 
       const instruction = new TransactionInstruction({
         keys: [{pubkey: accountPublicKey, isSigner: false, isWritable: true}],
@@ -174,8 +182,7 @@ const Home: NextPage = () => {
 
   const connectToPhantom = async () => {
     try {
-      const res = await provider?.connect();
-      console.log(res?.publicKey.toString());
+      await provider?.connect();
     } catch (err) {
       console.warn(err);
     }
@@ -219,9 +226,11 @@ const Home: NextPage = () => {
 
         const accountData = deserializeUnchecked(PROGRAM_ACCOUNT_SCHEMA, ProgramAccount, accountInfo.data);
 
-        setAccountName(accountData.accountName);
+        setMessageSender(accountData.sender);
+        setMessageContent(accountData.message);
+        setMessageSentDate(accountData.sent_date);
 
-        setIsAccountNameLoaded(true)
+        setIsAccountLoaded(true)
       
       })
     }, 5000);
@@ -233,13 +242,19 @@ const Home: NextPage = () => {
   return (
     <Flex h="100vh" w="100%" direction="column" align="center" justify="center" >
       <Flex w="300px" direction="column" align="center">
-        <Text mb="10">
-          {isAccountNameLoaded ? accountName : (<Spinner color='red.500' />)}
-        </Text>
+
+          {isAccountLoaded ? (
+            <Flex direction="column">
+              <Text>Sender: {messageSender} </Text>
+              <Text>Message: {messageContent} </Text>
+              <Text>Date: {messageSentDate} </Text>
+            </Flex>
+          ) : (<Spinner color='red.500' />)}
+
         {provider?.publicKey && (
           <>
-            <Input placeholder="Name" onChange={(e) => setName(e.target.value)}/>
-            <Button w="100%" colorScheme="twitter" onClick={() => programCall()} mt="4"> Create </Button>
+            <Textarea placeholder="Message" onChange={(e) => setMessage(e.target.value)}/>
+            <Button w="100%" colorScheme="twitter" onClick={() => programCall()} mt="4"> Ask </Button>
             {/* <Button w="100%" colorScheme="twitter" onClick={() => create_account(ACCOUNT_SEED, provider, new PublicKey(PROGRAM_ID) ,CONNECTION)} mt="4"> Create Account </Button> */}
           </>
         )}
