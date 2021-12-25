@@ -13,3 +13,8 @@ pub struct MessageAccount {
     pub sent: Vec<Message>,
 }
 
+#[derive(BorshDeserialize, BorshSerialize, Debug)]
+pub struct DataLength {
+  pub length: u32,
+}
+

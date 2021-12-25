@@ -1,7 +1,10 @@
+use solana_program::borsh::get_instance_packed_len;
+use borsh::BorshDeserialize;
+use crate::state::DataLength;
+use borsh::BorshSerialize;
 use crate::state::Message;
 use crate::state::MessageAccount;
 use crate::instruction::AccountInstruction;
-use borsh::BorshSerialize;
 use solana_program::{
   account_info::{next_account_info, AccountInfo},
   entrypoint::ProgramResult,
@@ -46,24 +49,35 @@ impl Processor {
       msg!("Account does not have the correct program id");
       return Err(ProgramError::IncorrectProgramId);
     }
-    
-    let message_obj = Message {
+
+    let message = Message {
       id: 0,
       sender,
       message,
       sent_date,
     };
 
-    let mut vec = Vec::new();
-    vec.push(message_obj);
+    let offset: usize = 4;
 
-    let messages = MessageAccount {
-      sent: vec,
+    let data_length = DataLength::try_from_slice(&account.data.borrow()[..offset])?;
+  
+    let mut account_data;
+    if data_length.length > 0 {
+      let length = usize::try_from(data_length.length + u32::try_from(offset).unwrap()).unwrap();
+      account_data = MessageAccount::try_from_slice(&account.data.borrow()[offset..length])?;
+    } else {
+      account_data = MessageAccount {
+        sent: Vec::new(),
+      };
+    }
+  
+    account_data.sent.push(message);
+    let data_length = DataLength {
+      length: u32::try_from(get_instance_packed_len(&account_data)?).unwrap(),
     };
 
-    messages.serialize(&mut &mut account.data.borrow_mut()[..])?;
-
-    msg!("Sender: {:?}", messages);
+    data_length.serialize(&mut &mut account.data.borrow_mut()[..offset])?;
+    account_data.serialize(&mut &mut account.data.borrow_mut()[offset..])?;
 
   Ok(())
 }
