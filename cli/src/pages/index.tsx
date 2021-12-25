@@ -173,7 +173,7 @@ const NETWORK = clusterApiUrl("devnet");
 const CONNECTION = new Connection(NETWORK);
 const PROGRAM_ID = 'Fsm28mcKQvRGTovKPvgE4eMomosT6iyJ7ChVZcEjXXmT'
 const ACCOUNT_SEED = 'message_dapp_2'
-const ACCOUNT = '9Un9SbxNAQRJJfcUfPVRFBsZ5kyirYsFgSqacEXZ4hS2'
+const ACCOUNT = 'DF6qSArGyA2ufjfom4X2zgzArsuwqsa7kjJ1iJuKMHj8'
 
 const Home: NextPage = () => {
   const [message, setMessage] = useState<string>('')
