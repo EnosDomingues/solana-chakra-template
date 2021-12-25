@@ -172,7 +172,7 @@ const getProvider = (): PhantomProvider | undefined => {
 const NETWORK = clusterApiUrl("devnet");
 const CONNECTION = new Connection(NETWORK);
 const PROGRAM_ID = 'Fsm28mcKQvRGTovKPvgE4eMomosT6iyJ7ChVZcEjXXmT'
-const ACCOUNT_SEED = 'message_dapp_1'
+const ACCOUNT_SEED = 'message_dapp_2'
 const ACCOUNT = '9Un9SbxNAQRJJfcUfPVRFBsZ5kyirYsFgSqacEXZ4hS2'
 
 const Home: NextPage = () => {
@@ -333,7 +333,7 @@ const Home: NextPage = () => {
           {provider?.publicKey ? 
           (
             <Button borderRadius={0} fontSize={14} w="200px" colorScheme="facebook" onClick={() => programCall()}> SEND </Button>
-           // <Button w="100%" colorScheme="twitter" onClick={() => create_account(ACCOUNT_SEED, provider, new PublicKey(PROGRAM_ID) ,CONNECTION)} mt="4"> Create Account </Button>
+            //<Button w="100%" colorScheme="twitter" onClick={() => create_account(ACCOUNT_SEED, provider, new PublicKey(PROGRAM_ID) ,CONNECTION)} borderRadius={0}> Create Account </Button>
             ):
             (
             <Button borderRadius={0} fontSize={14} w="200px" colorScheme="facebook" onClick={() => connectToPhantom()}> CONNECT </Button>
