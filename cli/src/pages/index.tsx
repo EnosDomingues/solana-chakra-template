@@ -99,36 +99,6 @@ class DataLength extends Assignable {
   }
 }
 
-// class MessageAccount {
-//   id = 0;
-//   sender: string;
-//   message: string;
-//   sent_date: string;
-
-//   constructor(fields: {
-//     id: number,
-//     sender: string,
-//     message: string,
-//     sent_date: string,
-//   }) {
-//     this.id = fields.id;
-//     this.sender = fields.sender;
-//     this.message = fields.message;
-//     this.sent_date = fields.sent_date;
-//   }
-// }
-
-// class MessagesAccount {
-//   sent: MessageAccount[];
-
-//   constructor(fields: {
-//     sent: MessageAccount[],
-//   }) {
-//     this.sent = fields.sent;
-//   }
-// }
-
-
 const MESSAGES_SCHEMA = new Map<any, any>([
   [
     MessageAccount, 
@@ -342,28 +312,6 @@ const Home: NextPage = () => {
           </Flex>
         </GridItem>
       </Grid>
-      {/* <Flex w="300px" direction="column" align="center">
-
-          (
-            <Spinner color='red.500' />
-          )}
-
-        {provider?.publicKey && (
-          <>
-            <Textarea placeholder="Message" onChange={(e) => setMessage(e.target.value)}/>
-            <Button w="100%" colorScheme="twitter" onClick={() => programCall()} mt="4"> Ask </Button> */}
-            {/* <Button w="100%" colorScheme="twitter" onClick={() => create_account(ACCOUNT_SEED, provider, new PublicKey(PROGRAM_ID) ,CONNECTION)} mt="4"> Create Account </Button> */}
-          {/* </>
-        )}
-        {provider?.publicKey ? 
-          (
-            <Button w="100%" colorScheme="facebook" mt="4" onClick={() => disconnectToPhantom()}> Disconnect </Button>
-          ):
-          (
-            <Button w="100%" colorScheme="facebook" mt="4" onClick={() => connectToPhantom()}> Connect </Button>
-          )
-        } 
-      </Flex> */}
     </Flex>
   )
 }
